@@ -33,30 +33,6 @@ double **alloc_2d_double(int n1, int n2){
     return dd;
 }
 
-void free_1d_int(int *i){
-    free(i);
-}
-
-int *alloc_1d_int(int n1){
-    int *i;
-    
-    i = (int *) malloc(sizeof(int) * n1);
-    alloc_error_check(i);
-    return i;
-}
-
-void free_1d_double(double *d){
-    free(d);
-}
-
-double *alloc_1d_double(int n1){
-    double *d;
-    
-    d = (double *) malloc(sizeof(double) * n1);
-    alloc_error_check(d);
-    return d;
-}
-
 double random_uniform(double first=4, double last=16){
     uniform_real_distribution<double> distribution(first, last);
     random_device rd;
@@ -90,7 +66,6 @@ int indexWithMinValue(double obj[]){
 }
 
 int main(){
-    printf("Perulangan 0");
     ifstream myFile;
     int Nx = 600;
     int Ny = 2;
@@ -99,26 +74,27 @@ int main(){
     double n = 0.1;
     double sn, tn_x_n, delta_x_w1, delta_y_w2;
     double winner_val[2],x[2],y[2];
-    printf("Perulangan 0");
+    printf("Perulangan 1\n");
     double **arr = alloc_2d_double(Nx+1, Ny+1);
-    double **neuron = alloc_2d_double(76, Ny);
-    double *obj_ft_neuron = alloc_1d_double(jumlahNeuron + 1);
-    int *tetangga = alloc_1d_int(jumlahNeuron + 1);
+    double **neuron = alloc_2d_double(jumlahNeuron + 1, Ny);
+    double obj_ft_neuron[jumlahNeuron];
+    int tetangga[jumlahNeuron];
     myFile.open("Dataset.csv");
-    while (myFile.good()){
+    printf("Perulangan 2\n");
+    i = 0;
+    while (myFile.good() && i < Nx){
         string line, perElement;
         getline(myFile, line, '\n');
-        arr[i][j] = atof(line.substr(0, line.find(',')).c_str());
-        arr[i][j+1] = atof(line.substr(line.find(',')+1, line.length()).c_str());
+        arr[i][0] = atof(line.substr(0, line.find(',')).c_str());
+        arr[i][1] = atof(line.substr(line.find(',')+1, line.length()).c_str());
         i++;
     }
-    printf("Perulangan 2");
     for(int k = 0; k < jumlahNeuron; k++){
         for(int l = 0; l < Ny; l++){
             neuron[k][l] = random_uniform();
         }
     }
-    printf("Perulangan 3");
+    printf("Perulangan 3\n");
     for(int epoch = 0; epoch < 5; epoch++){
         for(int objek = 0; objek < Nx; objek++){
             for(int neur = 0; neur < jumlahNeuron; neur++){
@@ -148,12 +124,12 @@ int main(){
         sigma = sigma * exp(-1*epoch/t_sigma);
         n = n * exp(-1*epoch/t_n);
     }
-    printf("Perulangan 4");
-    int *used = alloc_1d_int(jumlahNeuron + 1);
-    for(int y = 0; y < 75; y++){
+    printf("Perulangan 4\n");
+    int used[jumlahNeuron];
+    for(int y = 0; y < jumlahNeuron; y++){
         used[y] = 0;
     }
-    printf("Perulangan 5");
+    printf("Perulangan 5\n");
     for(int obj = 0; obj < Nx; obj++){
         for(int neur = 0; neur < jumlahNeuron; neur++){
             obj_ft_neuron[neur] = SN(arr[obj], neuron[neur]);
@@ -162,7 +138,7 @@ int main(){
         used[winner_idx] = 1;
     }
     i = 0;
-    printf("Perulangan 6");
+    printf("Perulangan 6\n");
     while(i < jumlahNeuron){
         if (used[i] == 1){
             x[0] = neuron[i][0];
@@ -182,14 +158,12 @@ int main(){
         }
         i++;
     }
-    printf("Perulangan 7");
-    for(int k = 0; k < 5; k++){
+    printf("Perulangan 7\n");
+    for(int k = 0; k < jumlahNeuron; k++){
         cout << used[k] << ", ";
     }
+    cout << endl;
     free_2d_double(arr);
     free_2d_double(neuron);
-    free_1d_double(obj_ft_neuron);
-    free_1d_int(tetangga);
-    //free_1d_int(used);
     return 0;
 }
