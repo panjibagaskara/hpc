@@ -6,12 +6,18 @@
 }
 #include <iostream>
 #include <stdlib.h>
+#include <cstdlib>
 #include <fstream>
 #include <random>
 #include <vector>
 #include <math.h>
 
 using namespace std;
+
+void free_2d_double(double **dd){
+    free(dd[0]);
+    free(dd);
+}
 
 double **alloc_2d_double(int n1, int n2){
     double **dd, *d;
@@ -25,6 +31,22 @@ double **alloc_2d_double(int n1, int n2){
         dd[k] = dd[k-1] + n2;
     }
     return dd;
+}
+
+void free_1d_int(int *i){
+    free(i);
+}
+
+int *alloc_1d_int(int n1){
+    int *i;
+    
+    i = (int *) malloc(sizeof(int) * n1);
+    alloc_error_check(i);
+    return i;
+}
+
+void free_1d_double(double *d){
+    free(d);
 }
 
 double *alloc_1d_double(int n1){
@@ -70,16 +92,16 @@ int indexWithMinValue(double obj[]){
 int main(){
     ifstream myFile;
     int Nx = 600;
-    int Ny, sigma, t_sigma, t_n = 2;
+    int Ny = 2;
     int i,j,winner_idx = 0;
+    double sigma, t_sigma, t_n = 2;
     double n = 0.1;
     double sn, tn_x_n, delta_x_w1, delta_y_w2;
-    double winner_val[2];
-    vector<int> tetangga;
-    // vector<vector<double>> arr(Nx, vector<double>(Ny, 0));
+    double winner_val[2],x[2],y[2];
     double **arr = alloc_2d_double(Nx+1, Ny+1);
     double **neuron = alloc_2d_double(76, Ny);
     double *obj_ft_neuron = alloc_1d_double(76);
+    int *tetangga = alloc_1d_int(76);
     myFile.open("Dataset.csv");
     while (myFile.good()){
         string line, perElement;
@@ -103,27 +125,63 @@ int main(){
             winner_val[1] = neuron[winner_idx][1];
             for(int te = 0; te < 75; te++){
                 if(SN(neuron[te], winner_val) <= sigma){
-                    tetangga.push_back(te);
+                    tetangga[te] = 1;
+                }else{
+                    tetangga[te] = 0;
                 }
             }
-            for(int r = 0; r < tetangga.size(); r++){
-                sn = SN(neuron[tetangga[r]], winner_val);
-                tn_x_n = n * TN(sn, sigma);
-                delta_x_w1 = tn_x_n * (arr[objek][0] - neuron[tetangga[r]][0]);
-                delta_y_w2 = tn_x_n * (arr[objek][1] - neuron[tetangga[r]][1]);
-                neuron[tetangga[r]][0] += delta_x_w1;
-                neuron[tetangga[r]][1] += delta_y_w2;
+            for(int r = 0; r < 75; r++){
+                if(tetangga[r] == 1){
+                    sn = SN(neuron[r], winner_val);
+                    tn_x_n = n * TN(sn, sigma);
+                    delta_x_w1 = tn_x_n * (arr[objek][0] - neuron[r][0]);
+                    delta_y_w2 = tn_x_n * (arr[objek][1] - neuron[r][1]);
+                    neuron[r][0] += delta_x_w1;
+                    neuron[r][1] += delta_y_w2;
+                }
             }
         }
-        //sigma *= exp(-epoch/t_sigma);
-        //n *= exp(-epoch/t_n);
+        sigma = sigma * exp(-1*epoch/t_sigma);
+        n = n * exp(-1*epoch/t_n);
     }
-    // for(int k = 0; k < 75; k++){
-    //     cout << k << ". ";
-    //     for(int l = 0; l < Ny; l++){
-    //         cout << neuron[k][l] << " ";
-    //     }
-    //     cout << endl;
-    // }
+    int *used = alloc_1d_int(76);
+    for(int y = 0; y < 75; y++){
+        used[y] = 0;
+    }
+    for(int obj = 0; obj < Nx; obj++){
+        for(int neur = 0; neur < 75; neur++){
+            obj_ft_neuron[neur] = SN(arr[obj], neuron[neur]);
+        }
+        winner_idx = indexWithMinValue(obj_ft_neuron);
+        used[winner_idx] = 1;
+    }
+    i = 0;
+    while(i < 75){
+        if (used[i] == 1){
+            x[0] = neuron[i][0];
+            x[1] = neuron[i][1];
+            j = 0;
+            while(j < 75){
+                if (used[j] == 1){
+                    y[0] = neuron[j][0];
+                    y[1] = neuron[j][1];
+                    double jarak = SN(x,y);
+                    if (i != j && jarak < 0.75){
+                        used[i] = 0;
+                    }
+                }
+                j++;
+            }
+        }
+        i++;
+    }
+    for(int k = 0; k < 5; k++){
+        cout << used[k] << ", ";
+    }
+    free_2d_double(arr);
+    free_2d_double(neuron);
+    free_1d_double(obj_ft_neuron);
+    free_1d_int(tetangga);
+    free_1d_int(used);
     return 0;
 }
