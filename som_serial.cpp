@@ -11,6 +11,7 @@
 #include <random>
 #include <vector>
 #include <math.h>
+#include "omp.h"
 
 using namespace std;
 
@@ -53,10 +54,10 @@ double TN(double sn, double sigma){
     return exp(x);
 }
 
-int indexWithMinValue(double obj[]){
+int indexWithMinValue(double obj[], int jumlahNeuron){
     double value = obj[0];
     int idx = 0;
-    for(int i = 0; i < 75; i++){
+    for(int i = 0; i < jumlahNeuron; i++){
         if (value > obj[i]){
             value = obj[i];
             idx = i;
@@ -66,10 +67,11 @@ int indexWithMinValue(double obj[]){
 }
 
 int main(){
+    double begin = omp_get_wtime();
     ifstream myFile;
     int Nx = 600;
     int Ny = 2;
-    int i,j,winner_idx = 0, jumlahNeuron = 75;
+    int i,j,winner_idx = 0, jumlahNeuron = 150;
     double sigma, t_sigma, t_n = 2;
     double n = 0.1;
     double sn, tn_x_n, delta_x_w1, delta_y_w2;
@@ -77,8 +79,8 @@ int main(){
     printf("Perulangan 1\n");
     double **arr = alloc_2d_double(Nx+1, Ny+1);
     double **neuron = alloc_2d_double(jumlahNeuron + 1, Ny);
-    double obj_ft_neuron[jumlahNeuron];
-    int tetangga[jumlahNeuron];
+    double* obj_ft_neuron = new double[jumlahNeuron];
+    int* tetangga = new int[jumlahNeuron];
     myFile.open("Dataset.csv");
     printf("Perulangan 2\n");
     i = 0;
@@ -95,12 +97,12 @@ int main(){
         }
     }
     printf("Perulangan 3\n");
-    for(int epoch = 0; epoch < 5; epoch++){
+    for(int epoch = 0; epoch < 1000; epoch++){
         for(int objek = 0; objek < Nx; objek++){
             for(int neur = 0; neur < jumlahNeuron; neur++){
                 obj_ft_neuron[neur] = SN(arr[objek], neuron[neur]);
             }
-            winner_idx = indexWithMinValue(obj_ft_neuron);
+            winner_idx = indexWithMinValue(obj_ft_neuron, jumlahNeuron);
             winner_val[0] = neuron[winner_idx][0];
             winner_val[1] = neuron[winner_idx][1];
             for(int te = 0; te < jumlahNeuron; te++){
@@ -125,7 +127,7 @@ int main(){
         n = n * exp(-1*epoch/t_n);
     }
     printf("Perulangan 4\n");
-    int used[jumlahNeuron];
+    int* used = new int[jumlahNeuron];
     for(int y = 0; y < jumlahNeuron; y++){
         used[y] = 0;
     }
@@ -134,7 +136,7 @@ int main(){
         for(int neur = 0; neur < jumlahNeuron; neur++){
             obj_ft_neuron[neur] = SN(arr[obj], neuron[neur]);
         }
-        winner_idx = indexWithMinValue(obj_ft_neuron);
+        winner_idx = indexWithMinValue(obj_ft_neuron, jumlahNeuron);
         used[winner_idx] = 1;
     }
     i = 0;
@@ -158,12 +160,9 @@ int main(){
         }
         i++;
     }
-    printf("Perulangan 7\n");
-    for(int k = 0; k < jumlahNeuron; k++){
-        cout << used[k] << ", ";
-    }
-    cout << endl;
     free_2d_double(arr);
     free_2d_double(neuron);
+    double end = omp_get_wtime();
+    printf("Serial Time: %g detik\n", end-begin);
     return 0;
 }
