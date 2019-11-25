@@ -76,13 +76,11 @@ int main(){
     double n = 0.1;
     double sn, tn_x_n, delta_x_w1, delta_y_w2;
     double winner_val[2],x[2],y[2];
-    printf("Perulangan 1\n");
     double **arr = alloc_2d_double(Nx+1, Ny+1);
     double **neuron = alloc_2d_double(jumlahNeuron + 1, Ny);
     double* obj_ft_neuron = new double[jumlahNeuron];
     int* tetangga = new int[jumlahNeuron];
     myFile.open("Dataset.csv");
-    printf("Perulangan 2\n");
     i = 0;
     while (myFile.good() && i < Nx){
         string line, perElement;
@@ -96,7 +94,6 @@ int main(){
             neuron[k][l] = random_uniform();
         }
     }
-    printf("Perulangan 3\n");
     for(int epoch = 0; epoch < 1000; epoch++){
         for(int objek = 0; objek < Nx; objek++){
             for(int neur = 0; neur < jumlahNeuron; neur++){
@@ -126,12 +123,10 @@ int main(){
         sigma = sigma * exp(-1*epoch/t_sigma);
         n = n * exp(-1*epoch/t_n);
     }
-    printf("Perulangan 4\n");
     int* used = new int[jumlahNeuron];
     for(int y = 0; y < jumlahNeuron; y++){
         used[y] = 0;
     }
-    printf("Perulangan 5\n");
     for(int obj = 0; obj < Nx; obj++){
         for(int neur = 0; neur < jumlahNeuron; neur++){
             obj_ft_neuron[neur] = SN(arr[obj], neuron[neur]);
@@ -140,7 +135,6 @@ int main(){
         used[winner_idx] = 1;
     }
     i = 0;
-    printf("Perulangan 6\n");
     while(i < jumlahNeuron){
         if (used[i] == 1){
             x[0] = neuron[i][0];
