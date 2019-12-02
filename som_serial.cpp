@@ -68,8 +68,8 @@ int indexWithMinValue(double obj[], int jumlahNeuron){
 
 int main(){
     double begin = omp_get_wtime();
-    ifstream myFile;
-    int Nx = 600;
+    // ifstream myFile;
+    int Nx = 1000;
     int Ny = 2;
     int i,j,winner_idx = 0, jumlahNeuron = 150;
     double sigma, t_sigma, t_n = 2;
@@ -80,15 +80,25 @@ int main(){
     double **neuron = alloc_2d_double(jumlahNeuron + 1, Ny);
     double* obj_ft_neuron = new double[jumlahNeuron];
     int* tetangga = new int[jumlahNeuron];
-    myFile.open("Dataset.csv");
-    i = 0;
-    while (myFile.good() && i < Nx){
-        string line, perElement;
-        getline(myFile, line, '\n');
-        arr[i][0] = atof(line.substr(0, line.find(',')).c_str());
-        arr[i][1] = atof(line.substr(line.find(',')+1, line.length()).c_str());
-        i++;
+    int* used = new int[jumlahNeuron];
+    // myFile.open("Dataset.csv");
+    // i = 0;
+    // while (myFile.good() && i < Nx){
+    //     string line, perElement;
+    //     getline(myFile, line, '\n');
+    //     arr[i][0] = atof(line.substr(0, line.find(',')).c_str());
+    //     arr[i][1] = atof(line.substr(line.find(',')+1, line.length()).c_str());
+    //     i++;
+    // }
+    for (int i = 0; i < Nx; i++)
+    {
+        for (int j = 0; j < Ny; j++)
+        {
+            arr[i][j] = random_uniform();
+        }
+        
     }
+    
     for(int k = 0; k < jumlahNeuron; k++){
         for(int l = 0; l < Ny; l++){
             neuron[k][l] = random_uniform();
@@ -122,10 +132,9 @@ int main(){
         }
         sigma = sigma * exp(-1*epoch/t_sigma);
         n = n * exp(-1*epoch/t_n);
-    }
-    int* used = new int[jumlahNeuron];
-    for(int y = 0; y < jumlahNeuron; y++){
-        used[y] = 0;
+        if (epoch < jumlahNeuron){        
+            used[epoch] = 0;
+        }
     }
     for(int obj = 0; obj < Nx; obj++){
         for(int neur = 0; neur < jumlahNeuron; neur++){
@@ -134,25 +143,26 @@ int main(){
         winner_idx = indexWithMinValue(obj_ft_neuron, jumlahNeuron);
         used[winner_idx] = 1;
     }
-    i = 0;
-    while(i < jumlahNeuron){
-        if (used[i] == 1){
+    for (int i = 0; i < jumlahNeuron; i++)
+    {
+        if (used[i] == 1)
+        {
             x[0] = neuron[i][0];
             x[1] = neuron[i][1];
-            j = 0;
-            while(j < jumlahNeuron){
-                if (used[j] == 1){
+            for (int j = 0; j < jumlahNeuron; j++)
+            {
+                if (used[j] == 1)
+                {
                     y[0] = neuron[j][0];
                     y[1] = neuron[j][1];
-                    double jarak = SN(x,y);
-                    if (i != j && jarak < 0.75){
+                    double jarak = SN(x, y);
+                    if (i != j && jarak < 0.75)
+                    {
                         used[i] = 0;
                     }
                 }
-                j++;
             }
         }
-        i++;
     }
     free_2d_double(arr);
     free_2d_double(neuron);

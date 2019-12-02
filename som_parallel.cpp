@@ -83,8 +83,8 @@ int main()
     // omp_set_num_threads(4);
     // printf("%d\n", omp_get_num_threads());
     double begin = omp_get_wtime();
-    ifstream myFile;
-    int Nx = 600;
+    // ifstream myFile;
+    int Nx = 1000;
     int Ny = 2;
     int i, j, winner_idx = 0, jumlahNeuron = 150;
     double sigma, t_sigma, t_n = 2;
@@ -96,18 +96,27 @@ int main()
     double *obj_ft_neuron = new double[jumlahNeuron];
     int *tetangga = new int[jumlahNeuron];
     int *used = new int[jumlahNeuron];
-    myFile.open("Dataset.csv");
+    // myFile.open("Dataset.csv");
 
-    i = 0;
-    while (myFile.good() && i < Nx)
+    // i = 0;
+    // while (myFile.good() && i < Nx)
+    // {
+    //     string line, perElement;
+    //     getline(myFile, line, '\n');
+    //     arr[i][0] = atof(line.substr(0, line.find(',')).c_str());
+    //     arr[i][1] = atof(line.substr(line.find(',') + 1, line.length()).c_str());
+    //     i++;
+    // }
+    #pragma omp parallel for collapse(2)
+    for (int i = 0; i < Nx; i++)
     {
-        string line, perElement;
-        getline(myFile, line, '\n');
-        arr[i][0] = atof(line.substr(0, line.find(',')).c_str());
-        arr[i][1] = atof(line.substr(line.find(',') + 1, line.length()).c_str());
-        i++;
+        for (int j = 0; j < Ny; j++)
+        {
+            arr[i][j] = random_uniform();
+        }
+        
     }
-#pragma omp parallel for collapse(2)
+    #pragma omp parallel for collapse(2)
     for (int k = 0; k < jumlahNeuron; k++)
     {
         for (int l = 0; l < Ny; l++)
@@ -115,8 +124,8 @@ int main()
             neuron[k][l] = random_uniform();
         }
     }
-#pragma omp parallel for \
-private(winner_idx, winner_val, obj_ft_neuron) reduction(*: sigma) reduction(*: n)
+    #pragma omp parallel for \
+    private(winner_idx, winner_val, obj_ft_neuron) reduction(*: sigma) reduction(*: n)
     for (int epoch = 0; epoch < 1000; epoch++)
     {
         for (int objek = 0; objek < Nx; objek++)
@@ -171,7 +180,7 @@ private(winner_idx, winner_val, obj_ft_neuron) reduction(*: sigma) reduction(*: 
         winner_idx = indexWithMinValue(obj_ft_neuron, jumlahNeuron);
         used[winner_idx] = 1;
     }
-#pragma omp parallel for private(x, y)
+    #pragma omp parallel for private(x, y)
     for (int i = 0; i < jumlahNeuron; i++)
     {
         if (used[i] == 1)
@@ -190,10 +199,8 @@ private(winner_idx, winner_val, obj_ft_neuron) reduction(*: sigma) reduction(*: 
                         used[i] = 0;
                     }
                 }
-                j++;
             }
         }
-        i++;
     }
     free_2d_double(arr);
     free_2d_double(neuron);
